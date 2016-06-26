@@ -7,20 +7,27 @@
 
 #include "i_model.h"
 #include "i_observer.h"
-#include "page_scanner.h"
+
 
 class ParserModel : public IModel
 {
 public:
     ParserModel();
-    ErrorCode StartScan(const std::string& startLink, int maxWorkers, const std::string& searchText, int maxURLs);
-    ErrorCode StopScan();
-    ErrorCode Pause();
+    ErrorCode AddObserver(IObserverWptr observer);
+    virtual ErrorCode StartScan(const std::string& startLink, int maxWorkers, const std::string& searchText, int maxURLs);
+    virtual ErrorCode StopScan();
+    virtual ErrorCode Pause();
     ~ParserModel();
 
 private:
 
-    PageScannerPtr m_pageScanner;
+    std::string GetResult(const std::string& pageContent, const std::string sample);
+    EntitiesList GetPageChildren(const std::string& url) const;
+    std::string GetPageContent(const std::string& url) const;
+    /*
+     * Notify observers about entities statuses
+     */
+    ErrorCode NotifyObservers(const EntitiesList& entities);
 
     std::vector<IObserverWptr> m_observersList;
 
@@ -30,6 +37,8 @@ private:
 
     std::string m_searchText;
 
+    int m_maxURLs;
 };
 
+typedef std::shared_ptr<ParserModel> ParserModelPtr;
 #endif //HTML_PARSER_TEST_PARSER_MODEL_H

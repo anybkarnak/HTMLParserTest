@@ -16,7 +16,11 @@ add_subdirectory(model)
 add_subdirectory(presenter)
 add_subdirectory(view)
 
+
 set(SOURCE_FILES main.cpp)
 add_executable(html-parser-test ${SOURCE_FILES})
+
+target_link_libraries(${PROJECT_NAME} common model view presenter)
+add_dependencies(${PROJECT_NAME} common model view presenter)
 
 

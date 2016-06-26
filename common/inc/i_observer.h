@@ -9,7 +9,11 @@
 
 class IObserver
 {
-    ErrorCode UpdateEntities(const EntitiesList& entities);
+public:
+    virtual ErrorCode UpdateEntities(const EntitiesList& entities) = 0;
+    virtual ~IObserver(){}
 };
+
 typedef std::weak_ptr<IObserver> IObserverWptr;
+typedef std::shared_ptr<IObserver> IObserverPtr;
 #endif //HTML_PARSER_TEST_I_OBSERVER_H

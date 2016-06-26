@@ -9,8 +9,8 @@
 class IView
 {
 public:
-    ErrorCode UpdateEntities(const EntitiesList& entities);
-    ~IView(){}
+    virtual ErrorCode UpdateEntities(const EntitiesList& entities) = 0;
+    virtual ~IView(){}
 };
 
 typedef std::shared_ptr<IView> IViewPtr;

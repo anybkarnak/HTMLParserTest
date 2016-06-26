@@ -17,7 +17,7 @@ struct Entity
     std::string status;
 };
 
-typedef std::set<Entity> EntitiesList;
+typedef std::vector<Entity> EntitiesList;
 
 enum class ErrorCode
 {

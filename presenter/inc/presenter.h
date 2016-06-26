@@ -14,7 +14,11 @@ class Presenter : public IObserver, public IPresenter
 {
 public:
 
-    Presenter();
+    Presenter(IModelPtr model);
+    ErrorCode AddView(IViewPtr view);
+    virtual ErrorCode StartScan(const std::string& startLink, int maxWorkers, const std::string& searchText, int maxURLs);
+    virtual ErrorCode StopScan();
+    virtual ErrorCode Pause();
     ErrorCode UpdateEntities(const EntitiesList& entities);
 
 private:
@@ -22,4 +26,5 @@ private:
     std::vector<IViewPtr> m_views;
 };
 
+typedef std::shared_ptr<Presenter> PresenterPtr;
 #endif //HTML_PARSER_TEST_PRESENTER_H

@@ -11,9 +11,9 @@ class IModel
 {
 public:
 
-    ErrorCode StartScan(const std::string& startLink, int maxWorkers, const std::string& searchText, int maxURLs);
-    ErrorCode StopScan();
-    ErrorCode Pause();
+    virtual ErrorCode StartScan(const std::string& startLink, int maxWorkers, const std::string& searchText, int maxURLs) = 0;
+    virtual ErrorCode StopScan() = 0;
+    virtual ErrorCode Pause() = 0;
 
     virtual ~IModel()
     { };
