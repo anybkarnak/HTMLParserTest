@@ -11,9 +11,11 @@ MESSAGE( STATUS "CMAKE_LIBRARY_OUTPUT_DIRECTORY:         " ${CMAKE_LIBRARY_OUTPU
 #Include macros
 include(macros.cmake)
 
+add_subdirectory(common)
 add_subdirectory(model)
 add_subdirectory(presenter)
 add_subdirectory(view)
+
 set(SOURCE_FILES main.cpp)
 add_executable(html-parser-test ${SOURCE_FILES})
 
