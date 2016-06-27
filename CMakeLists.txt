@@ -16,6 +16,11 @@ add_subdirectory(model)
 add_subdirectory(presenter)
 add_subdirectory(view)
 
+# Find includes in corresponding build directories
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
+# Instruct CMake to run moc automatically when needed.
+set(CMAKE_AUTOMOC ON)
+find_package(Qt5Widgets)
 
 set(SOURCE_FILES main.cpp)
 add_executable(html-parser-test ${SOURCE_FILES})
@@ -23,4 +28,4 @@ add_executable(html-parser-test ${SOURCE_FILES})
 target_link_libraries(${PROJECT_NAME} common model view presenter)
 add_dependencies(${PROJECT_NAME} common model view presenter)
 
-
+target_link_libraries(${PROJECT_NAME} Qt5::Widgets)

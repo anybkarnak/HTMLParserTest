@@ -7,6 +7,7 @@
 #include <qt_view.h>
 #include "presenter.h"
 #include "parser_model.h"
+#include <QApplication>
 
 
 int main(int argc,      // Number of strings in array argv
@@ -19,12 +20,19 @@ int main(int argc,      // Number of strings in array argv
         std::cout << "  argv[" << count << "]   "
         << argv[count] << "\n\n";
 
+    QApplication a(argc, argv);
+
     ParserModelPtr model = std::make_shared<ParserModel>();
-    IViewPtr view = std::make_shared<QTView>();
+    QTViewPtr view = std::make_shared<QTView>();
     PresenterPtr presenter = std::make_shared<Presenter>(model);
     presenter->AddView(view);
     model->AddObserver(presenter);
+    view->SetPresenter(presenter);
 
-    presenter->StartScan("http://cboard.cprogramming.com/cplusplus-programming/152169-cplusplus-extracting-url-string-problem.html", 0,"1",1);
-    return 0;
+    view->show();
+
+    return a.exec();
+
+    //
+    //return 0;
 }

@@ -2,8 +2,10 @@
 // Created by akomandyr on 24.06.16.
 //
 
-#ifndef HTML_PARSER_TEST_I_PRESENTER_H
-#define HTML_PARSER_TEST_I_PRESENTER_H
+#ifndef I_PRESENTER_H
+#define I_PRESENTER_H
+
+#include "common_types.h"
 
 class IPresenter
 {
@@ -15,5 +17,5 @@ public:
 
     virtual ~IPresenter(){}
 };
-
+typedef std::weak_ptr<IPresenter> IPresenterPtr;
 #endif //HTML_PARSER_TEST_I_PRESENTER_H

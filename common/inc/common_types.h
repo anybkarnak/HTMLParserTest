@@ -13,8 +13,14 @@
 
 struct Entity
 {
+    Entity():link(std::string()), status("in progress"){}
     std::string link;
     std::string status;
+    void SetStatus(std::string stat)
+    {
+        status = stat;
+    }
+    bool operator<(const Entity& rhs) const { return link<rhs.link; }
 };
 
 typedef std::vector<Entity> EntitiesList;

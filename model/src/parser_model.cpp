@@ -8,9 +8,6 @@
 #include <algorithm>
 #include "parser_model.h"
 
-
-static std::set<std::string> links;
-
 static size_t WriteCallback(void* contents, size_t size, size_t nmemb, void* userp)
 {
     ((std::string*) userp)->append((char*) contents, size * nmemb);
@@ -40,10 +37,11 @@ ErrorCode ParserModel::StartScan(const std::string& startLink, int maxWorkers,
     m_searchText = searchText;
     m_maxWorkers = maxWorkers;
     m_maxURLs = maxURLs;
+    m_openURLs = 0;
     //init thread pool
 
-
-    NotifyObservers(GetPageChildren(startLink));
+    ProcessEntity(startLink);
+    //NotifyObservers(GetPageChildren(startLink));
 
     return ErrorCode::SUCCESS;
 }
@@ -68,22 +66,51 @@ ParserModel::~ParserModel()
 
 }
 
-std::string ParserModel::GetResult(const std::string& pageContent, const std::string sample)
+std::string ParserModel::GetResult(const std::string& pageContent) const
 {
-    if (pageContent.find(sample) != std::string::npos)
+    if (pageContent.find(m_searchText) != std::string::npos)
     {
         return "found";
     }
     else
     {
-        return "not found";
+        if (pageContent.find("curl_easy_perform() failed") != std::string::npos)
+        {
+            return pageContent;
+        }
+        else
+        {
+            return "not found";
+        }
     }
 }
 
-
-EntitiesList ParserModel::GetPageChildren(const std::string& url) const
+ErrorCode ParserModel::ProcessEntity(const std::string& url) const
 {
     const std::string data = GetPageContent(url);
+
+    Entity entity;
+    entity.link = url;
+    entity.status = GetResult(data);
+    EntitiesList list{ entity };
+    NotifyObservers(list);
+
+    EntitiesList children = GetPageChildren(data);
+    NotifyObservers(children);
+
+    //static ThreadPool pool(m_maxWorkers);
+
+    for (auto& ent:children)
+    {
+        ProcessEntity(ent.link);
+    }
+
+    return ErrorCode::SUCCESS;
+}
+
+EntitiesList ParserModel::GetPageChildren(const std::string& data) const
+{
+    std::set<std::string> links;
 
     std::string beginLink = "http://";
     std::vector<std::string> endLinks{ "\"", ">", "\'" };
@@ -94,11 +121,17 @@ EntitiesList ParserModel::GetPageChildren(const std::string& url) const
     while (std::string::npos !=
            (start_pos = data.find(beginLink, start_pos)))
     {
+        m_openURLs++;
+        if (m_openURLs >= m_maxURLs)
+        {
+            break;
+        }
+
         end_pos = data.find(endLinks[2], start_pos);
-        for(auto&endLink:endLinks)
+        for (auto& endLink:endLinks)
         {
             std::string::size_type tmpPos = data.find(endLink, start_pos);
-            end_pos = std::min(end_pos,tmpPos);
+            end_pos = std::min(end_pos, tmpPos);
         }
         //end_pos = data.find(endLinks[0], start_pos);
         unsigned int urlLen = end_pos - start_pos;
@@ -114,6 +147,7 @@ EntitiesList ParserModel::GetPageChildren(const std::string& url) const
         Entity ent;
         ent.link = link;
         list.push_back(ent);
+
     }
 
     return list;
@@ -139,7 +173,7 @@ std::string ParserModel::GetPageContent(const std::string& url) const
         if (res != CURLE_OK)
         {
             std::ostringstream out;
-            out << stderr<<"curl_easy_perform() failed:"<<curl_easy_strerror(res);
+            out << stderr << "curl_easy_perform() failed:" << curl_easy_strerror(res);
             content = out.str();
         }
     }
@@ -150,7 +184,7 @@ std::string ParserModel::GetPageContent(const std::string& url) const
 /*
  * Notify observers about entities statuses
  */
-ErrorCode ParserModel::NotifyObservers(const EntitiesList& entities)
+ErrorCode ParserModel::NotifyObservers(const EntitiesList& entities) const
 {
     for (auto& obs:m_observersList)
     {

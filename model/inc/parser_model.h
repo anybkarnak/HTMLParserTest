@@ -5,9 +5,9 @@
 #ifndef PARSER_MODEL_H
 #define PARSER_MODEL_H
 
+#include <atomic>
 #include "i_model.h"
 #include "i_observer.h"
-
 
 class ParserModel : public IModel
 {
@@ -21,13 +21,17 @@ public:
 
 private:
 
-    std::string GetResult(const std::string& pageContent, const std::string sample);
-    EntitiesList GetPageChildren(const std::string& url) const;
+    std::string GetResult(const std::string& pageContent) const;
+
+    ErrorCode ProcessEntity(const std::string& url) const;
+
+    EntitiesList GetPageChildren(const std::string& data) const;
+
     std::string GetPageContent(const std::string& url) const;
     /*
      * Notify observers about entities statuses
      */
-    ErrorCode NotifyObservers(const EntitiesList& entities);
+    ErrorCode NotifyObservers(const EntitiesList& entities) const;
 
     std::vector<IObserverWptr> m_observersList;
 
@@ -38,6 +42,9 @@ private:
     std::string m_searchText;
 
     int m_maxURLs;
+
+    mutable std::atomic<int> m_openURLs;
+
 };
 
 typedef std::shared_ptr<ParserModel> ParserModelPtr;
