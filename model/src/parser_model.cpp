@@ -5,14 +5,20 @@
 #include <iterator>
 #include <curl/curl.h>
 #include <sstream>
-
+#include <algorithm>
 #include "parser_model.h"
 
 
 static std::set<std::string> links;
 
+static size_t WriteCallback(void* contents, size_t size, size_t nmemb, void* userp)
+{
+    ((std::string*) userp)->append((char*) contents, size * nmemb);
+    return size * nmemb;
+}
 
-ParserModel::ParserModel() :
+
+ParserModel::ParserModel():
         m_startLink(""),
         m_searchText(""),
         m_maxWorkers(0),
@@ -27,8 +33,8 @@ ErrorCode ParserModel::AddObserver(IObserverWptr observer)
 }
 
 
-ErrorCode ParserModel::StartScan(const std::string &startLink, int maxWorkers,
-                                 const std::string &searchText, int maxURLs)
+ErrorCode ParserModel::StartScan(const std::string& startLink, int maxWorkers,
+                                 const std::string& searchText, int maxURLs)
 {
     m_startLink = startLink;
     m_searchText = searchText;
@@ -62,7 +68,7 @@ ParserModel::~ParserModel()
 
 }
 
-std::string ParserModel::GetResult(const std::string &pageContent, const std::string sample)
+std::string ParserModel::GetResult(const std::string& pageContent, const std::string sample)
 {
     if (pageContent.find(sample) != std::string::npos)
     {
@@ -75,48 +81,67 @@ std::string ParserModel::GetResult(const std::string &pageContent, const std::st
 }
 
 
-
-
-EntitiesList ParserModel::GetPageChildren(const std::string &url) const
+EntitiesList ParserModel::GetPageChildren(const std::string& url) const
 {
     const std::string data = GetPageContent(url);
 
-    EntitiesList list;
-    Entity ent1;
-    ent1.link = data;
-    list.push_back(ent1);
-    Entity ent2;
-    ent2.link = "_A";
-    list.push_back(ent2);
+    std::string beginLink = "http://";
+    std::vector<std::string> endLinks{ "\"", ">", "\'" };
 
-//    for(auto& link:links)
-//    {
-//        Entity ent;
-//        ent.link = link;
-//        list.push_back(ent);
-//    }
+    std::string::size_type start_pos = 0;
+    std::string::size_type end_pos = 0;
+
+    while (std::string::npos !=
+           (start_pos = data.find(beginLink, start_pos)))
+    {
+        end_pos = data.find(endLinks[2], start_pos);
+        for(auto&endLink:endLinks)
+        {
+            std::string::size_type tmpPos = data.find(endLink, start_pos);
+            end_pos = std::min(end_pos,tmpPos);
+        }
+        //end_pos = data.find(endLinks[0], start_pos);
+        unsigned int urlLen = end_pos - start_pos;
+        std::string urlStr = data.substr(start_pos, urlLen);
+        links.insert(urlStr);
+        start_pos = end_pos;
+    }
+
+    EntitiesList list;
+
+    for (auto& link:links)
+    {
+        Entity ent;
+        ent.link = link;
+        list.push_back(ent);
+    }
 
     return list;
 }
 
-std::string ParserModel::GetPageContent(const std::string &url) const
+std::string ParserModel::GetPageContent(const std::string& url) const
 {
-    CURL *curl;
+    CURL* curl;
     CURLcode res;
     std::string content;
 
     curl = curl_easy_init();
-    if(curl) {
+    if (curl)
+    {
         curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
         curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
         curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
+        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &content);
         res = curl_easy_perform(curl);
         curl_easy_cleanup(curl);
 
-        std::ostringstream out;
-        out << res;
-
-        content = out.str();
+        if (res != CURLE_OK)
+        {
+            std::ostringstream out;
+            out << stderr<<"curl_easy_perform() failed:"<<curl_easy_strerror(res);
+            content = out.str();
+        }
     }
 
     return content;
@@ -125,9 +150,9 @@ std::string ParserModel::GetPageContent(const std::string &url) const
 /*
  * Notify observers about entities statuses
  */
-ErrorCode ParserModel::NotifyObservers(const EntitiesList &entities)
+ErrorCode ParserModel::NotifyObservers(const EntitiesList& entities)
 {
-    for (auto &obs:m_observersList)
+    for (auto& obs:m_observersList)
     {
         IObserverPtr observer;
 

@@ -25,6 +25,6 @@ int main(int argc,      // Number of strings in array argv
     presenter->AddView(view);
     model->AddObserver(presenter);
 
-    presenter->StartScan("http://www.gnu.org/software/libc/manual/html_node/Regular-Expressions.html", 0,"1",1);
+    presenter->StartScan("http://cboard.cprogramming.com/cplusplus-programming/152169-cplusplus-extracting-url-string-problem.html", 0,"1",1);
     return 0;
 }

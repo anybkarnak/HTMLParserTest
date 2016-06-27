@@ -9,6 +9,6 @@ ErrorCode QTView::UpdateEntities(const EntitiesList& entities)
 {
     for(auto &entity:entities)
     {
-        std::cout<<"URL  "<<entity.link<<"status =  "<<entity.status<<std::endl;
+        std::cout<<"URL  "<<entity.link<<"   status =  "<<entity.status<<std::endl;
     }
 }
