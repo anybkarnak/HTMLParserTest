@@ -50,11 +50,14 @@ ErrorCode QTView::UpdateEntities(const EntitiesList& entities)
         //std::cout << "URL  " << entity.link << "   status =  " << entity.status << std::endl;
     }
 
+	return ErrorCode::_SUCCESS;
 }
 
 ErrorCode QTView::SetPresenter(IPresenterPtr presenter)
 {
     m_presenter = presenter;
+
+	return ErrorCode::_SUCCESS;
 }
 
 QTView::~QTView()
@@ -72,6 +75,9 @@ void QTView::Start()
         std::string searchText = m_textSearchSampleEdit->text().toStdString();
         int maxURLs = m_numberofMaxURLsEdit->text().toInt();
         presenter->StartScan(startLink, maxWorkers, searchText, maxURLs);
+
+        m_startButton->setDisabled(true);
+
     }
     else
     {
@@ -79,9 +85,34 @@ void QTView::Start()
     }
 }
 
-void QTView::Stop() { }
+void QTView::Stop()
+{
+    std::shared_ptr<IPresenter> presenter;
+    if (presenter = m_presenter.lock())
+    {
+        presenter->StopScan();
+        m_startButton->setEnabled(true);
+        m_searchStatusTable->clear();
+    }
+    else
+    {
+         std::cout<<"Presenter Error"<<std::endl;
+    }
 
-void QTView::Pause() { }
+}
+
+void QTView::Pause()
+{
+    std::shared_ptr<IPresenter> presenter;
+    if (presenter = m_presenter.lock())
+    {
+        presenter->Pause();
+    }
+    else
+    {
+         std::cout<<"Presenter Error"<<std::endl;
+    }
+}
 
 
 //! [0]

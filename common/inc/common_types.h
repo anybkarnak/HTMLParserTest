@@ -27,8 +27,8 @@ typedef std::vector<Entity> EntitiesList;
 
 enum class ErrorCode
 {
-    SUCCESS = 1,
-    ERROR = 0
+    _SUCCESS = 1,
+    _ERROR = 0
 };
 
 #endif //HTML_PARSER_TEST_COMMON_TYPES_H

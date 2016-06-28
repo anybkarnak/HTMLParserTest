@@ -21,6 +21,7 @@ int main(int argc,      // Number of strings in array argv
         << argv[count] << "\n\n";
 
     QApplication a(argc, argv);
+	
 
     ParserModelPtr model = std::make_shared<ParserModel>();
     QTViewPtr view = std::make_shared<QTView>();

@@ -9,6 +9,7 @@
 #include "i_presenter.h"
 #include <QWidget>
 #include <QDir>
+#include <mutex>
 
 QT_BEGIN_NAMESPACE
 class QComboBox;

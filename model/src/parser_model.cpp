@@ -7,6 +7,8 @@
 #include <sstream>
 #include <algorithm>
 #include "parser_model.h"
+#include <thread>
+#include <iostream>
 
 static size_t WriteCallback(void* contents, size_t size, size_t nmemb, void* userp)
 {
@@ -27,8 +29,31 @@ ParserModel::ParserModel():
 ErrorCode ParserModel::AddObserver(IObserverWptr observer)
 {
     m_observersList.push_back(observer);
-}
 
+	return ErrorCode::_SUCCESS;
+}
+//it can be developed by ThreadPool, but it is inly a prototype=)
+ErrorCode ParserModel::StartProcessing()
+{
+    while(!m_isPaused)
+    {
+        if( m_usedWorkers<m_maxWorkers)
+        {
+            std::string link = m_tasks.pop();
+            if(!link.empty())
+            {
+
+            std::cout<<link<<std::endl;
+
+            std::thread worker(&ParserModel::ProcessEntity, this, link);
+            worker.detach();
+            }
+        }
+
+    }
+
+    return ErrorCode::_SUCCESS;
+}
 
 ErrorCode ParserModel::StartScan(const std::string& startLink, int maxWorkers,
                                  const std::string& searchText, int maxURLs)
@@ -38,12 +63,15 @@ ErrorCode ParserModel::StartScan(const std::string& startLink, int maxWorkers,
     m_maxWorkers = maxWorkers;
     m_maxURLs = maxURLs;
     m_openURLs = 0;
-    //init thread pool
+    m_isPaused = false;
+    //init thread pool, get first links
+    ProcessEntity(m_startLink);
 
-    ProcessEntity(startLink);
-    //NotifyObservers(GetPageChildren(startLink));
+    std::thread t2(&ParserModel::StartProcessing, this);
+    t2.detach();
 
-    return ErrorCode::SUCCESS;
+
+    return ErrorCode::_SUCCESS;
 }
 
 ErrorCode ParserModel::StopScan()
@@ -53,12 +81,13 @@ ErrorCode ParserModel::StopScan()
     m_maxWorkers = 0;
     m_maxURLs = 0;
 
-    return ErrorCode::SUCCESS;
+    return ErrorCode::_SUCCESS;
 }
 
 ErrorCode ParserModel::Pause()
 {
-    return ErrorCode::SUCCESS;
+    m_isPaused = !m_isPaused;
+    return ErrorCode::_SUCCESS;
 }
 
 ParserModel::~ParserModel()
@@ -87,6 +116,9 @@ std::string ParserModel::GetResult(const std::string& pageContent) const
 
 ErrorCode ParserModel::ProcessEntity(const std::string& url) const
 {
+    //manage number of working threads
+    m_usedWorkers++;
+
     const std::string data = GetPageContent(url);
 
     Entity entity;
@@ -98,14 +130,13 @@ ErrorCode ParserModel::ProcessEntity(const std::string& url) const
     EntitiesList children = GetPageChildren(data);
     NotifyObservers(children);
 
-    //static ThreadPool pool(m_maxWorkers);
-
     for (auto& ent:children)
     {
-        ProcessEntity(ent.link);
+      m_tasks.push(ent.link);
     }
 
-    return ErrorCode::SUCCESS;
+    m_usedWorkers--;
+    return ErrorCode::_SUCCESS;
 }
 
 EntitiesList ParserModel::GetPageChildren(const std::string& data) const
@@ -122,7 +153,7 @@ EntitiesList ParserModel::GetPageChildren(const std::string& data) const
            (start_pos = data.find(beginLink, start_pos)))
     {
         m_openURLs++;
-        if (m_openURLs >= m_maxURLs)
+        if (m_openURLs - 1 >= m_maxURLs)
         {
             break;
         }
@@ -131,9 +162,9 @@ EntitiesList ParserModel::GetPageChildren(const std::string& data) const
         for (auto& endLink:endLinks)
         {
             std::string::size_type tmpPos = data.find(endLink, start_pos);
-            end_pos = std::min(end_pos, tmpPos);
+            end_pos = (std::min)(end_pos, tmpPos);
         }
-        //end_pos = data.find(endLinks[0], start_pos);
+
         unsigned int urlLen = end_pos - start_pos;
         std::string urlStr = data.substr(start_pos, urlLen);
         links.insert(urlStr);
@@ -155,6 +186,7 @@ EntitiesList ParserModel::GetPageChildren(const std::string& data) const
 
 std::string ParserModel::GetPageContent(const std::string& url) const
 {
+    //each worker need locally copy of curl instance
     CURL* curl;
     CURLcode res;
     std::string content;
@@ -186,6 +218,8 @@ std::string ParserModel::GetPageContent(const std::string& url) const
  */
 ErrorCode ParserModel::NotifyObservers(const EntitiesList& entities) const
 {
+    std::lock_guard<std::mutex> lock(m_obsMutex);
+
     for (auto& obs:m_observersList)
     {
         IObserverPtr observer;
@@ -196,7 +230,9 @@ ErrorCode ParserModel::NotifyObservers(const EntitiesList& entities) const
         }
         else
         {
-            return ErrorCode::ERROR;
+            return ErrorCode::_ERROR;
         }
     }
+
+	return ErrorCode::_SUCCESS;
 }

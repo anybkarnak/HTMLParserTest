@@ -29,9 +29,13 @@ ErrorCode Presenter::UpdateEntities(const EntitiesList &entities)
     {
         view->UpdateEntities(entities);
     }
+
+	return ErrorCode::_SUCCESS;
 }
 
 ErrorCode Presenter::AddView(IViewPtr view)
 {
     m_views.push_back(view);
+
+	return ErrorCode::_SUCCESS;
 }

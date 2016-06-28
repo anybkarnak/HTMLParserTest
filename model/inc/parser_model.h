@@ -8,6 +8,7 @@
 #include <atomic>
 #include "i_model.h"
 #include "i_observer.h"
+#include "my_queue.h"
 
 class ParserModel : public IModel
 {
@@ -20,6 +21,8 @@ public:
     ~ParserModel();
 
 private:
+
+    ErrorCode StartProcessing();
 
     std::string GetResult(const std::string& pageContent) const;
 
@@ -45,6 +48,13 @@ private:
 
     mutable std::atomic<int> m_openURLs;
 
+    mutable std::atomic<int> m_usedWorkers;
+
+    mutable Queue<std::string> m_tasks;
+
+    mutable std::mutex    m_obsMutex;  // protects gui
+
+    mutable bool m_isPaused;
 };
 
 typedef std::shared_ptr<ParserModel> ParserModelPtr;
