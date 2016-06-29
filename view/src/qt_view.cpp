@@ -12,15 +12,15 @@ static const std::string PauseButtonName = "&PAUSE";
 
 ErrorCode QTView::UpdateEntities(const EntitiesList& entities)
 {
-    if(entities.size()==1)
+    if (entities.size() == 1)
     {
         auto it = find_if(m_entList.begin(), m_entList.end(),
-        [&entities](Entity ent)
-        {
-            return entities[0].link == ent.link;
-        });
+                          [ &entities ](Entity ent)
+                          {
+                              return entities[0].link == ent.link;
+                          });
 
-        if(it!=std::end(m_entList))
+        if (it != std::end(m_entList))
         {
             m_entList.erase(it);
             m_entList.insert(entities[0]);
@@ -28,36 +28,47 @@ ErrorCode QTView::UpdateEntities(const EntitiesList& entities)
     }
     else
     {
-        std::copy( std::begin(entities),  std::end(entities), std::inserter( m_entList, std::end(m_entList) ) );
+        std::copy(std::begin(entities), std::end(entities), std::inserter(m_entList, std::end(m_entList)));
     }
 
-    m_searchStatusTable->setRowCount(0);
+    //m_searchStatusTable->setRowCount(0);
+    m_searchStatusTable->clear();
+    QStringList labels;
+    labels << tr("URL") << tr("STATUS");
+    m_searchStatusTable->setHorizontalHeaderLabels(labels);
 
+    // std::shared_ptr<QTableWidgetItem> linkItem;
+    //  std::shared_ptr<QTableWidgetItem> statusItem;
     for (auto& entity:m_entList)
     {
-//        QTableWidgetItem *linkItem = new QTableWidgetItem(tr(entity.link.c_str()));
-//        linkItem->setFlags(linkItem->flags());
-//
-//        QTableWidgetItem *statusItem = new QTableWidgetItem(tr(entity.status.c_str()));
-//        statusItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
-//        statusItem->setFlags(statusItem->flags());
-//
-//        int row = m_searchStatusTable->rowCount();
-//        m_searchStatusTable->insertRow(row);
-//        m_searchStatusTable->setItem(row, 0, linkItem);
-//        m_searchStatusTable->setItem(row, 1, statusItem);
+        QTableWidgetItem* linkItem = new QTableWidgetItem(tr(entity.link.c_str()));
+        linkItem->setFlags(linkItem->flags());
 
-        std::cout << "URL  " << entity.link << "   status =  " << entity.status << std::endl;
+        QTableWidgetItem* statusItem = new QTableWidgetItem(tr(entity.status.c_str()));
+        statusItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
+        statusItem->setFlags(statusItem->flags());
+
+        int row = 0; //m_searchStatusTable->rowCount();
+
+        m_searchStatusTable->insertRow(row);
+        m_searchStatusTable->setItem(row, 0, linkItem);
+        m_searchStatusTable->setItem(row, 1, statusItem);
+
+        row++;
+
+        //delete linkItem;
+        //delete statusItem;
+        //std::cout << "URL  " << entity.link << "   status =  " << entity.status << std::endl;
     }
 
-	return ErrorCode::_SUCCESS;
+    return ErrorCode::_SUCCESS;
 }
 
 ErrorCode QTView::SetPresenter(IPresenterPtr presenter)
 {
     m_presenter = presenter;
 
-	return ErrorCode::_SUCCESS;
+    return ErrorCode::_SUCCESS;
 }
 
 QTView::~QTView()
@@ -81,7 +92,7 @@ void QTView::Start()
     }
     else
     {
-        std::cout<<"Presenter Error"<<std::endl;
+        std::cout << "Presenter Error" << std::endl;
     }
 }
 
@@ -100,7 +111,7 @@ void QTView::Stop()
     }
     else
     {
-         std::cout<<"Presenter Error"<<std::endl;
+        std::cout << "Presenter Error" << std::endl;
     }
 
 }
@@ -114,7 +125,7 @@ void QTView::Pause()
     }
     else
     {
-         std::cout<<"Presenter Error"<<std::endl;
+        std::cout << "Presenter Error" << std::endl;
     }
 }
 
@@ -169,8 +180,8 @@ QTView::QTView(QWidget* parent)
 
     //resultofsearchstatustable
     m_searchStatusTable;
-
-    m_searchStatusTable = new QTableWidget(0, 2);
+    //has a 1000rows and 2 cols
+    m_searchStatusTable = new QTableWidget(1000, 2);
     m_searchStatusTable->setSelectionBehavior(QAbstractItemView::SelectRows);
 
     QStringList labels;
