@@ -49,7 +49,6 @@ ErrorCode ParserModel::StartProcessing()
             worker.detach();
             }
         }
-
     }
 
     return ErrorCode::_SUCCESS;
@@ -64,6 +63,7 @@ ErrorCode ParserModel::StartScan(const std::string& startLink, int maxWorkers,
     m_maxURLs = maxURLs;
     m_openURLs = 0;
     m_isPaused = false;
+    m_usedWorkers = 0;
     //init thread pool, get first links
     ProcessEntity(m_startLink);
 
@@ -80,13 +80,26 @@ ErrorCode ParserModel::StopScan()
     m_searchText = "";
     m_maxWorkers = 0;
     m_maxURLs = 0;
+    m_usedWorkers = 0;
+    m_openURLs = 0;
+    m_isPaused = false;
 
     return ErrorCode::_SUCCESS;
 }
 
 ErrorCode ParserModel::Pause()
 {
-    m_isPaused = !m_isPaused;
+    if(m_isPaused)
+    {
+        std::thread t2(&ParserModel::StartProcessing, this);
+        t2.detach();
+        m_isPaused = false;
+    }
+    else
+    {
+        m_isPaused = true;
+    }
+
     return ErrorCode::_SUCCESS;
 }
 

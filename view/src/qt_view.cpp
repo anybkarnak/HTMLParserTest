@@ -91,8 +91,12 @@ void QTView::Stop()
     if (presenter = m_presenter.lock())
     {
         presenter->StopScan();
+        m_entList.clear();
         m_startButton->setEnabled(true);
         m_searchStatusTable->clear();
+        QStringList labels;
+        labels << tr("URL") << tr("STATUS");
+        m_searchStatusTable->setHorizontalHeaderLabels(labels);
     }
     else
     {
@@ -157,7 +161,7 @@ QTView::QTView(QWidget* parent)
     connect(m_pauseButton, &QAbstractButton::clicked, this, &QTView::Pause);
 
     m_stopButton = new QPushButton(tr(StopButtonName.c_str()), this);
-    connect(m_pauseButton, &QAbstractButton::clicked, this, &QTView::Stop);
+    connect(m_stopButton, &QAbstractButton::clicked, this, &QTView::Stop);
 
     mainLayout->addWidget(m_startButton, 4, 0);
     mainLayout->addWidget(m_pauseButton, 4, 1);
