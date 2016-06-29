@@ -26,9 +26,9 @@ private:
 
     std::string GetResult(const std::string& pageContent) const;
 
-    ErrorCode ProcessEntity(const std::string& url) const;
+    ErrorCode ProcessEntity(const std::string& url);
 
-    EntitiesList GetPageChildren(const std::string& data) const;
+    EntitiesList GetPageChildren(const std::string& data);
 
     std::string GetPageContent(const std::string& url) const;
     /*
@@ -46,15 +46,15 @@ private:
 
     int m_maxURLs;
 
-    mutable std::atomic<int> m_openURLs;
+    std::atomic<int> m_openURLs;
 
-    mutable std::atomic<int> m_usedWorkers;
+    std::atomic<int> m_usedWorkers;
 
-    mutable Queue<std::string> m_tasks;
+    Queue<std::string> m_tasks;
 
     mutable std::mutex    m_obsMutex;  // protects gui
 
-    mutable bool m_isPaused;
+    bool m_isPaused;
 };
 
 typedef std::shared_ptr<ParserModel> ParserModelPtr;

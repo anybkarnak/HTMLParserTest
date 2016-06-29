@@ -30,23 +30,25 @@ ErrorCode ParserModel::AddObserver(IObserverWptr observer)
 {
     m_observersList.push_back(observer);
 
-	return ErrorCode::_SUCCESS;
+    return ErrorCode::_SUCCESS;
 }
+
 //it can be developed by ThreadPool, but it is inly a prototype=)
 ErrorCode ParserModel::StartProcessing()
 {
-    while(!m_isPaused)
+    while (!m_isPaused)
     {
-        if( m_usedWorkers<m_maxWorkers)
+        if (m_usedWorkers < m_maxWorkers)
         {
             std::string link = m_tasks.pop();
-            if(!link.empty())
+            if (!link.empty())
             {
 
-            std::cout<<link<<std::endl;
+                //debug solution
+                //std::cout<<link<<std::endl;
 
-            std::thread worker(&ParserModel::ProcessEntity, this, link);
-            worker.detach();
+                std::thread worker(&ParserModel::ProcessEntity, this, link);
+                worker.detach();
             }
         }
     }
@@ -89,7 +91,7 @@ ErrorCode ParserModel::StopScan()
 
 ErrorCode ParserModel::Pause()
 {
-    if(m_isPaused)
+    if (m_isPaused)
     {
         std::thread t2(&ParserModel::StartProcessing, this);
         t2.detach();
@@ -127,7 +129,7 @@ std::string ParserModel::GetResult(const std::string& pageContent) const
     }
 }
 
-ErrorCode ParserModel::ProcessEntity(const std::string& url) const
+ErrorCode ParserModel::ProcessEntity(const std::string& url)
 {
     //manage number of working threads
     m_usedWorkers++;
@@ -145,14 +147,14 @@ ErrorCode ParserModel::ProcessEntity(const std::string& url) const
 
     for (auto& ent:children)
     {
-      m_tasks.push(ent.link);
+        m_tasks.push(ent.link);
     }
 
     m_usedWorkers--;
     return ErrorCode::_SUCCESS;
 }
 
-EntitiesList ParserModel::GetPageChildren(const std::string& data) const
+EntitiesList ParserModel::GetPageChildren(const std::string& data)
 {
     std::set<std::string> links;
 
@@ -247,5 +249,5 @@ ErrorCode ParserModel::NotifyObservers(const EntitiesList& entities) const
         }
     }
 
-	return ErrorCode::_SUCCESS;
+    return ErrorCode::_SUCCESS;
 }

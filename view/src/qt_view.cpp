@@ -35,19 +35,19 @@ ErrorCode QTView::UpdateEntities(const EntitiesList& entities)
 
     for (auto& entity:m_entList)
     {
-        QTableWidgetItem *linkItem = new QTableWidgetItem(tr(entity.link.c_str()));
-        linkItem->setFlags(linkItem->flags());
+//        QTableWidgetItem *linkItem = new QTableWidgetItem(tr(entity.link.c_str()));
+//        linkItem->setFlags(linkItem->flags());
+//
+//        QTableWidgetItem *statusItem = new QTableWidgetItem(tr(entity.status.c_str()));
+//        statusItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
+//        statusItem->setFlags(statusItem->flags());
+//
+//        int row = m_searchStatusTable->rowCount();
+//        m_searchStatusTable->insertRow(row);
+//        m_searchStatusTable->setItem(row, 0, linkItem);
+//        m_searchStatusTable->setItem(row, 1, statusItem);
 
-        QTableWidgetItem *statusItem = new QTableWidgetItem(tr(entity.status.c_str()));
-        statusItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
-        statusItem->setFlags(statusItem->flags());
-
-        int row = m_searchStatusTable->rowCount();
-        m_searchStatusTable->insertRow(row);
-        m_searchStatusTable->setItem(row, 0, linkItem);
-        m_searchStatusTable->setItem(row, 1, statusItem);
-
-        //std::cout << "URL  " << entity.link << "   status =  " << entity.status << std::endl;
+        std::cout << "URL  " << entity.link << "   status =  " << entity.status << std::endl;
     }
 
 	return ErrorCode::_SUCCESS;

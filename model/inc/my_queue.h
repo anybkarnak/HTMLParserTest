@@ -6,6 +6,7 @@
 #include <mutex>
 #include <condition_variable>
 
+//thx for a google for this simple and efficient class
 template <typename T>
 class Queue
 {
