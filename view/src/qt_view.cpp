@@ -71,7 +71,8 @@ ErrorCode QTView::UpdateEntities(const EntitiesList& entities)
         //delete statusItem;
         //std::cout << "URL  " << entity.link << "   status =  " << entity.status << std::endl;
     }
-
+    //update view on the table
+    m_searchStatusTable->reset();
     return ErrorCode::_SUCCESS;
 }
 
@@ -211,7 +212,7 @@ QTView::QTView(QWidget* parent)
     setLayout(mainLayout);
 
     setWindowTitle(tr("Search Some Text In URL"));
-    resize(700, 300);
+    resize(700, 600);
 }
 //! [1]
 
