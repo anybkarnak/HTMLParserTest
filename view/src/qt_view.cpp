@@ -12,29 +12,25 @@ static const std::string PauseButtonName = "&PAUSE";
 
 ErrorCode QTView::UpdateEntities(const EntitiesList& entities)
 {
-    if (entities.size() == 1)
+
+    for (auto& ent:entities)
     {
         auto it = find_if(m_entList.begin(), m_entList.end(),
-                          [ &entities ](Entity ent)
+                          [ &ent ](Entity m_ent)
                           {
-                              return entities[0].link.compare(ent.link)==0;
+                              return m_ent.link.compare(ent.link) == 0;
                           });
 
         if (it != std::end(m_entList))
         {
             it->status = entities[0].status;
             //m_entList[it];
-
         }
         else
         {
-            //m_entList.push_back(entities[0]);
-            std::cout<<"Error occured, process entity, which is not a some child"<<std::endl;
+            m_entList.push_back(ent);
+            //std::cout << "Error occured, process entity, which is not a some child" << std::endl;
         }
-    }
-    else
-    {
-        std::copy(std::begin(entities), std::end(entities), std::inserter(m_entList, std::end(m_entList)));
     }
 
     //m_searchStatusTable->setRowCount(0);
@@ -48,7 +44,7 @@ ErrorCode QTView::UpdateEntities(const EntitiesList& entities)
         //change existing table item
         int rows = m_searchStatusTable->rowCount();
         bool isChanged = false;
-        for(int i = 1 ; i<rows; ++i)
+        for(int i = 0 ; i<rows; ++i)
         {
             if(m_searchStatusTable->item(i,0)->text().toStdString().compare(entity.link)==0)
             {
@@ -70,9 +66,6 @@ ErrorCode QTView::UpdateEntities(const EntitiesList& entities)
             m_searchStatusTable->setItem(rows, 0, linkItem);
             m_searchStatusTable->setItem(rows, 1, statusItem);
         }
-
-
-
 
         //delete linkItem;
         //delete statusItem;
@@ -103,7 +96,7 @@ void QTView::Start()
         int maxWorkers = m_numberOfWorkersEdit->text().toInt();
         std::string searchText = m_textSearchSampleEdit->text().toStdString();
         int maxURLs = m_numberofMaxURLsEdit->text().toInt();
-        m_searchStatusTable->clear();
+        //m_searchStatusTable->clear();
         presenter->StartScan(startLink, maxWorkers, searchText, maxURLs);
 
         m_startButton->setDisabled(true);
@@ -120,6 +113,8 @@ void QTView::Stop()
     std::shared_ptr<IPresenter> presenter;
     if (presenter = m_presenter.lock())
     {
+        m_searchStatusTable->setRowCount(0);
+        m_searchStatusTable->clear();
         presenter->StopScan();
         m_entList.clear();
         m_startButton->setEnabled(true);

@@ -147,6 +147,7 @@ ErrorCode ParserModel::ProcessEntity(const std::string& url)
 
     for (auto& ent:children)
     {
+        //BFS
         m_tasks.push(ent.link);
     }
 
