@@ -46,6 +46,7 @@ ErrorCode QTView::UpdateEntities(const EntitiesList& entities)
     //  std::shared_ptr<QTableWidgetItem> statusItem;
     for (auto& entity:m_entList)
     {
+        //change existing table item
         int rows = m_searchStatusTable->rowCount();
         bool isChanged = false;
         for(int i = 0 ; i<rows; ++i)
@@ -56,6 +57,7 @@ ErrorCode QTView::UpdateEntities(const EntitiesList& entities)
                 m_searchStatusTable->item(i,1)->setText(tr(entity.status.c_str()));
             }
         }
+        //add new item to table
         if(!isChanged)
         {
             QTableWidgetItem* linkItem = new QTableWidgetItem(tr(entity.link.c_str()));
