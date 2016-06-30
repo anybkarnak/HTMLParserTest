@@ -24,10 +24,11 @@ ErrorCode QTView::UpdateEntities(const EntitiesList& entities)
         {
             it->status = entities[0].status;
             //m_entList[it];
-            //m_entList.push_back();
+
         }
         else
         {
+            //m_entList.push_back(entities[0]);
             std::cout<<"Error occured, process entity, which is not a some child"<<std::endl;
         }
     }
@@ -38,9 +39,7 @@ ErrorCode QTView::UpdateEntities(const EntitiesList& entities)
 
     //m_searchStatusTable->setRowCount(0);
     //m_searchStatusTable->clear();
-    //QStringList labels;
-    //labels << tr("URL") << tr("STATUS");
-    //m_searchStatusTable->setHorizontalHeaderLabels(labels);
+
 
     // std::shared_ptr<QTableWidgetItem> linkItem;
     //  std::shared_ptr<QTableWidgetItem> statusItem;
@@ -49,7 +48,7 @@ ErrorCode QTView::UpdateEntities(const EntitiesList& entities)
         //change existing table item
         int rows = m_searchStatusTable->rowCount();
         bool isChanged = false;
-        for(int i = 0 ; i<rows; ++i)
+        for(int i = 1 ; i<rows; ++i)
         {
             if(m_searchStatusTable->item(i,0)->text().toStdString().compare(entity.link)==0)
             {
