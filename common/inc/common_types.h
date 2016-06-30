@@ -16,7 +16,7 @@ struct Entity
     Entity():link(std::string()), status("in progress"){}
     std::string link;
     std::string status;
-    void SetStatus(std::string stat)
+    void SetStatus(std::string& stat)
     {
         status = stat;
     }

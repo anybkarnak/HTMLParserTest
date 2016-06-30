@@ -17,13 +17,18 @@ ErrorCode QTView::UpdateEntities(const EntitiesList& entities)
         auto it = find_if(m_entList.begin(), m_entList.end(),
                           [ &entities ](Entity ent)
                           {
-                              return entities[0].link == ent.link;
+                              return entities[0].link.compare(ent.link)==0;
                           });
 
         if (it != std::end(m_entList))
         {
-            m_entList.erase(it);
-            m_entList.insert(entities[0]);
+            it->status = entities[0].status;
+            //m_entList[it];
+            //m_entList.push_back();
+        }
+        else
+        {
+            std::cout<<"Error occured, process entity, which is not a some child"<<std::endl;
         }
     }
     else
@@ -32,29 +37,41 @@ ErrorCode QTView::UpdateEntities(const EntitiesList& entities)
     }
 
     //m_searchStatusTable->setRowCount(0);
-    m_searchStatusTable->clear();
-    QStringList labels;
-    labels << tr("URL") << tr("STATUS");
-    m_searchStatusTable->setHorizontalHeaderLabels(labels);
+    //m_searchStatusTable->clear();
+    //QStringList labels;
+    //labels << tr("URL") << tr("STATUS");
+    //m_searchStatusTable->setHorizontalHeaderLabels(labels);
 
     // std::shared_ptr<QTableWidgetItem> linkItem;
     //  std::shared_ptr<QTableWidgetItem> statusItem;
     for (auto& entity:m_entList)
     {
-        QTableWidgetItem* linkItem = new QTableWidgetItem(tr(entity.link.c_str()));
-        linkItem->setFlags(linkItem->flags());
+        int rows = m_searchStatusTable->rowCount();
+        bool isChanged = false;
+        for(int i = 0 ; i<rows; ++i)
+        {
+            if(m_searchStatusTable->item(i,0)->text().toStdString().compare(entity.link)==0)
+            {
+                isChanged = true;
+                m_searchStatusTable->item(i,1)->setText(tr(entity.status.c_str()));
+            }
+        }
+        if(!isChanged)
+        {
+            QTableWidgetItem* linkItem = new QTableWidgetItem(tr(entity.link.c_str()));
+            linkItem->setFlags(linkItem->flags());
 
-        QTableWidgetItem* statusItem = new QTableWidgetItem(tr(entity.status.c_str()));
-        statusItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
-        statusItem->setFlags(statusItem->flags());
+            QTableWidgetItem* statusItem = new QTableWidgetItem(tr(entity.status.c_str()));
+            statusItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
+            statusItem->setFlags(statusItem->flags());
 
-        int row = 0; //m_searchStatusTable->rowCount();
+            m_searchStatusTable->insertRow(rows);
+            m_searchStatusTable->setItem(rows, 0, linkItem);
+            m_searchStatusTable->setItem(rows, 1, statusItem);
+        }
 
-        m_searchStatusTable->insertRow(row);
-        m_searchStatusTable->setItem(row, 0, linkItem);
-        m_searchStatusTable->setItem(row, 1, statusItem);
 
-        row++;
+
 
         //delete linkItem;
         //delete statusItem;
@@ -85,6 +102,7 @@ void QTView::Start()
         int maxWorkers = m_numberOfWorkersEdit->text().toInt();
         std::string searchText = m_textSearchSampleEdit->text().toStdString();
         int maxURLs = m_numberofMaxURLsEdit->text().toInt();
+        m_searchStatusTable->clear();
         presenter->StartScan(startLink, maxWorkers, searchText, maxURLs);
 
         m_startButton->setDisabled(true);
@@ -104,10 +122,10 @@ void QTView::Stop()
         presenter->StopScan();
         m_entList.clear();
         m_startButton->setEnabled(true);
-        m_searchStatusTable->clear();
         QStringList labels;
         labels << tr("URL") << tr("STATUS");
         m_searchStatusTable->setHorizontalHeaderLabels(labels);
+        m_items.clear();
     }
     else
     {
@@ -180,8 +198,8 @@ QTView::QTView(QWidget* parent)
 
     //resultofsearchstatustable
     m_searchStatusTable;
-    //has a 1000rows and 2 cols
-    m_searchStatusTable = new QTableWidget(1000, 2);
+    //has a 0rows and 2 cols
+    m_searchStatusTable = new QTableWidget(0, 2);
     m_searchStatusTable->setSelectionBehavior(QAbstractItemView::SelectRows);
 
     QStringList labels;

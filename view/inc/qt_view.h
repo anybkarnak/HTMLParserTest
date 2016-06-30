@@ -10,7 +10,7 @@
 #include <QWidget>
 #include <QDir>
 #include <mutex>
-
+#include <utility>
 QT_BEGIN_NAMESPACE
 class QComboBox;
 class QLabel;
@@ -39,7 +39,8 @@ private slots:
     void Pause();
 
 private:
-
+    void Sync();
+    void DrawTable();
     //buttons
     QPushButton*  m_startButton;
     QPushButton*  m_pauseButton;
@@ -57,8 +58,11 @@ private:
     //resultofsearchstatustable
     QTableWidget* m_searchStatusTable;
 
+    //table rows
+    std::map<std::shared_ptr<QTableWidgetItem>, std::shared_ptr<QTableWidgetItem> >  m_items;
+
     IPresenterPtr m_presenter;
-    std::set<Entity>  m_entList;
+    std::vector<Entity>  m_entList;
 };
 //! [0]
 typedef std::shared_ptr<QTView> QTViewPtr;
