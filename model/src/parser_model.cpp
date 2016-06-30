@@ -10,14 +10,17 @@
 #include <thread>
 #include <iostream>
 
-static size_t WriteCallback(void* contents, size_t size, size_t nmemb, void* userp)
+static const std::string FoundStr = "FOUND";
+static const std::string NotFoundStr = "not found";
+
+static size_t WriteCallback(void *contents, size_t size, size_t nmemb, void *userp)
 {
-    ((std::string*) userp)->append((char*) contents, size * nmemb);
+    ((std::string *) userp)->append((char *) contents, size * nmemb);
     return size * nmemb;
 }
 
 
-ParserModel::ParserModel():
+ParserModel::ParserModel() :
         m_startLink(""),
         m_searchText(""),
         m_maxWorkers(0),
@@ -56,8 +59,8 @@ ErrorCode ParserModel::StartProcessing()
     return ErrorCode::_SUCCESS;
 }
 
-ErrorCode ParserModel::StartScan(const std::string& startLink, int maxWorkers,
-                                 const std::string& searchText, int maxURLs)
+ErrorCode ParserModel::StartScan(const std::string &startLink, int maxWorkers,
+                                 const std::string &searchText, int maxURLs)
 {
     m_startLink = startLink;
     m_searchText = searchText;
@@ -86,7 +89,7 @@ ErrorCode ParserModel::StopScan()
     m_maxURLs = 0;
     m_usedWorkers = 0;
     m_openURLs = 0;
-    m_isPaused = false;
+    m_isPaused = true;
 
     return ErrorCode::_SUCCESS;
 }
@@ -112,11 +115,11 @@ ParserModel::~ParserModel()
 
 }
 
-std::string ParserModel::GetResult(const std::string& pageContent) const
+std::string ParserModel::GetResult(const std::string &pageContent) const
 {
     if (pageContent.find(m_searchText) != std::string::npos)
     {
-        return "found";
+        return FoundStr;
     }
     else
     {
@@ -126,12 +129,12 @@ std::string ParserModel::GetResult(const std::string& pageContent) const
         }
         else
         {
-            return "not found";
+            return NotFoundStr;
         }
     }
 }
 
-ErrorCode ParserModel::ProcessEntity(const std::string& url)
+ErrorCode ParserModel::ProcessEntity(const std::string &url)
 {
     //manage number of working threads =)prototype solution
     m_usedWorkers++;
@@ -141,13 +144,13 @@ ErrorCode ParserModel::ProcessEntity(const std::string& url)
     Entity entity;
     entity.link = url;
     entity.status = GetResult(data);
-    EntitiesList list{ entity };
+    EntitiesList list{entity};
     NotifyObservers(list);
 
     EntitiesList children = GetPageChildren(data);
     NotifyObservers(children);
 
-    for (auto& ent:children)
+    for (auto &ent:children)
     {
         //all chilrens of entity pushed into tasks queue
         m_tasks.push(ent.link);
@@ -157,12 +160,12 @@ ErrorCode ParserModel::ProcessEntity(const std::string& url)
     return ErrorCode::_SUCCESS;
 }
 
-EntitiesList ParserModel::GetPageChildren(const std::string& data)
+EntitiesList ParserModel::GetPageChildren(const std::string &data)
 {
     std::set<std::string> links;
 
     std::string beginLink = "http://";
-    std::vector<std::string> endLinks{ "\"", ">", "\'" };
+    std::vector<std::string> endLinks{"\"", ">", "\'"};
 
     std::string::size_type start_pos = 0;
     std::string::size_type end_pos = 0;
@@ -177,7 +180,7 @@ EntitiesList ParserModel::GetPageChildren(const std::string& data)
         }
 
         end_pos = data.find(endLinks[2], start_pos);
-        for (auto& endLink:endLinks)
+        for (auto &endLink:endLinks)
         {
             std::string::size_type tmpPos = data.find(endLink, start_pos);
             end_pos = (std::min)(end_pos, tmpPos);
@@ -191,7 +194,7 @@ EntitiesList ParserModel::GetPageChildren(const std::string& data)
 
     EntitiesList list;
 
-    for (auto& link:links)
+    for (auto &link:links)
     {
         Entity ent;
         ent.link = link;
@@ -202,10 +205,10 @@ EntitiesList ParserModel::GetPageChildren(const std::string& data)
     return list;
 }
 
-std::string ParserModel::GetPageContent(const std::string& url) const
+std::string ParserModel::GetPageContent(const std::string &url) const
 {
     //each worker need locally copy of curl instance
-    CURL* curl;
+    CURL *curl;
     CURLcode res;
     std::string content;
 
@@ -234,23 +237,25 @@ std::string ParserModel::GetPageContent(const std::string& url) const
 /*
  * Notify observers about entities statuses
  */
-ErrorCode ParserModel::NotifyObservers(const EntitiesList& entities) const
+ErrorCode ParserModel::NotifyObservers(const EntitiesList &entities) const
 {
     std::lock_guard<std::mutex> lock(m_obsMutex);
-
-    for (auto& obs:m_observersList)
+    //do not send any to view!
+    if (!m_isPaused)
     {
-        IObserverPtr observer;
+        for (auto &obs:m_observersList)
+        {
+            IObserverPtr observer;
 
-        if (observer = obs.lock())
-        {
-            return observer->UpdateEntities(entities);
-        }
-        else
-        {
-            return ErrorCode::_ERROR;
+            if (observer = obs.lock())
+            {
+                return observer->UpdateEntities(entities);
+            }
+            else
+            {
+                return ErrorCode::_ERROR;
+            }
         }
     }
-
     return ErrorCode::_SUCCESS;
 }

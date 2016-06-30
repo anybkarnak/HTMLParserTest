@@ -23,22 +23,14 @@ ErrorCode QTView::UpdateEntities(const EntitiesList& entities)
 
         if (it != std::end(m_entList))
         {
-            it->status = entities[0].status;
-            //m_entList[it];
+            it->status = ent.status;
         }
         else
         {
             m_entList.push_back(ent);
-            //std::cout << "Error occured, process entity, which is not a some child" << std::endl;
         }
     }
 
-    //m_searchStatusTable->setRowCount(0);
-    //m_searchStatusTable->clear();
-
-
-    // std::shared_ptr<QTableWidgetItem> linkItem;
-    //  std::shared_ptr<QTableWidgetItem> statusItem;
     for (auto& entity:m_entList)
     {
         //change existing table item
@@ -67,8 +59,7 @@ ErrorCode QTView::UpdateEntities(const EntitiesList& entities)
             m_searchStatusTable->setItem(rows, 1, statusItem);
         }
 
-        //delete linkItem;
-        //delete statusItem;
+
         //std::cout << "URL  " << entity.link << "   status =  " << entity.status << std::endl;
     }
     //update view on the table
@@ -97,7 +88,7 @@ void QTView::Start()
         int maxWorkers = m_numberOfWorkersEdit->text().toInt();
         std::string searchText = m_textSearchSampleEdit->text().toStdString();
         int maxURLs = m_numberofMaxURLsEdit->text().toInt();
-        //m_searchStatusTable->clear();
+        m_entList.clear();
         presenter->StartScan(startLink, maxWorkers, searchText, maxURLs);
 
         m_startButton->setDisabled(true);
@@ -117,13 +108,13 @@ void QTView::Stop()
         m_searchStatusTable->setRowCount(0);
         m_searchStatusTable->clear();
         presenter->StopScan();
-        m_entList.clear();
+
         m_startButton->setEnabled(true);
         QStringList labels;
         labels << tr("URL") << tr("STATUS");
         m_searchStatusTable->setHorizontalHeaderLabels(labels);
-        m_items.clear();
-    }
+
+     }
     else
     {
         std::cout << "Presenter Error" << std::endl;
