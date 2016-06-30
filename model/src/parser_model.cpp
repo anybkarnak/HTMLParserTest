@@ -66,8 +66,10 @@ ErrorCode ParserModel::StartScan(const std::string& startLink, int maxWorkers,
     m_openURLs = 0;
     m_isPaused = false;
     m_usedWorkers = 0;
-    //init thread pool, get first links
-    ProcessEntity(m_startLink);
+    //init tasks queue, get first links
+    //ProcessEntity(m_startLink);
+    std::thread t1(&ParserModel::ProcessEntity, this, m_startLink);
+    t1.detach();
 
     std::thread t2(&ParserModel::StartProcessing, this);
     t2.detach();
@@ -131,7 +133,7 @@ std::string ParserModel::GetResult(const std::string& pageContent) const
 
 ErrorCode ParserModel::ProcessEntity(const std::string& url)
 {
-    //manage number of working threads
+    //manage number of working threads =)prototype solution
     m_usedWorkers++;
 
     const std::string data = GetPageContent(url);
@@ -147,7 +149,7 @@ ErrorCode ParserModel::ProcessEntity(const std::string& url)
 
     for (auto& ent:children)
     {
-        //BFS
+        //all chilrens of entity pushed into tasks queue
         m_tasks.push(ent.link);
     }
 
