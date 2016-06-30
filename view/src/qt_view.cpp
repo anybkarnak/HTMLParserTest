@@ -7,13 +7,14 @@
 #include <QtWidgets>
 #include <thread>
 #include <chrono>
-
+#
 static const std::string StartButtonName = "&START";
 static const std::string StopButtonName = "&STOP";
 static const std::string PauseButtonName = "&PAUSE";
 
 ErrorCode QTView::UpdateEntities(const EntitiesList& entities)
 {
+    m_updateDone = false;
 
     for (auto& ent:entities)
     {
@@ -74,6 +75,8 @@ ErrorCode QTView::UpdateEntities(const EntitiesList& entities)
     }
     //update view on the table
     m_searchStatusTable->reset();
+    m_updateDone = true;
+    m_goodstopCond.notify_one();
     return ErrorCode::_SUCCESS;
 }
 
@@ -116,8 +119,11 @@ void QTView::Stop()
     if (presenter = m_presenter.lock())
     {
         presenter->StopScan();
+
+        std::unique_lock <std::mutex> lock(m_stopMutex);
+        m_goodstopCond.wait(lock, [this]{return m_updateDone;});
         //wait for threads, which use an table and ent list (need w8 just one notiffy)
-        std::this_thread::sleep_for(std::chrono::milliseconds(200));
+        //std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
         m_searchStatusTable->setRowCount(0);
         m_searchStatusTable->clear();

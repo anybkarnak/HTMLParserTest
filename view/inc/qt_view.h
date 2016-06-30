@@ -11,6 +11,8 @@
 #include <QDir>
 #include <mutex>
 #include <utility>
+#include <condition_variable>
+
 QT_BEGIN_NAMESPACE
 class QComboBox;
 class QLabel;
@@ -63,6 +65,10 @@ private:
 
     IPresenterPtr m_presenter;
     std::vector<Entity>  m_entList;
+
+    std::condition_variable m_goodstopCond;
+    std::mutex m_stopMutex;
+    bool m_updateDone;
 };
 //! [0]
 typedef std::shared_ptr<QTView> QTViewPtr;
